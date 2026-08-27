@@ -1,0 +1,37 @@
+Q7 server log analytics benchmark
+started : Thu Aug 27 22:11:10 IST 2026
+host    : node06.local
+reps    : 3 (fastest kept)
+seed    : 12345
+
+
+--- Small  N=10000  S=64 ---
+  P=1  total   0.0021s   read  0.0004  compute  0.0016  reduce  0.0000
+  P=2  total   0.0011s   read  0.0003  compute  0.0008  reduce  0.0000
+  P=4  total   0.0007s   read  0.0002  compute  0.0005  reduce  0.0001
+  P=8  total   0.0005s   read  0.0002  compute  0.0003  reduce  0.0001
+
+--- Medium  N=100000  S=64 ---
+  P=1  total   0.0190s   read  0.0029  compute  0.0161  reduce  0.0000
+  P=2  total   0.0102s   read  0.0020  compute  0.0082  reduce  0.0001
+  P=4  total   0.0053s   read  0.0011  compute  0.0041  reduce  0.0002
+  P=8  total   0.0029s   read  0.0007  compute  0.0021  reduce  0.0002
+
+--- Large  N=1000000  S=64 ---
+  P=1  total   0.1799s   read  0.0238  compute  0.1560  reduce  0.0001
+  P=2  total   0.0917s   read  0.0129  compute  0.0791  reduce  0.0003
+  P=4  total   0.0471s   read  0.0072  compute  0.0400  reduce  0.0004
+  P=8  total   0.0252s   read  0.0047  compute  0.0209  reduce  0.0005
+
+--- Verylarge  N=10000000  S=64 ---
+  P=1  total   1.8028s   read  0.2237  compute  1.5783  reduce  0.0008
+  P=2  total   0.9193s   read  0.1200  compute  0.7984  reduce  0.0022
+  P=4  total   0.4658s   read  0.0613  compute  0.4039  reduce  0.0045
+  P=8  total   0.2460s   read  0.0357  compute  0.2079  reduce  0.0043
+
+finished: Thu Aug 27 22:11:27 IST 2026
+
+raw timings : results/benchmark_raw.csv
+transcript  : results/benchmark_log.txt
+tables      : results/report_tables.md
+graph       : skipped (needs scripts/plot_speedup.py and matplotlib)

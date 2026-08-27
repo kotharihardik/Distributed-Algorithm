@@ -1,0 +1,53 @@
+Q7 correctness check - Thu Aug 27 22:11:06 IST 2026
+
+== hand-checked logs ==
+  PASS  sample  P=1
+  PASS  sample  P=2
+  PASS  sample  P=4
+  PASS  sample  P=8
+  PASS  all_ok  P=1
+  PASS  all_ok  P=2
+  PASS  all_ok  P=4
+  PASS  all_ok  P=8
+  PASS  all_fail  P=1
+  PASS  all_fail  P=2
+  PASS  all_fail  P=4
+  PASS  all_fail  P=8
+  PASS  single  P=1
+  PASS  single  P=2
+  PASS  single  P=4
+  PASS  single  P=8
+  PASS  ties  P=1
+  PASS  ties  P=2
+  PASS  ties  P=4
+  PASS  ties  P=8
+
+== generated logs, MPI vs sequential ==
+  PASS  N=3 K=2 S=2 E=2  P=1
+  PASS  N=3 K=2 S=2 E=2  P=2
+  PASS  N=3 K=2 S=2 E=2  P=4
+  PASS  N=3 K=2 S=2 E=2  P=8
+  PASS  N=137 K=3 S=7 E=11  P=1
+  PASS  N=137 K=3 S=7 E=11  P=2
+  PASS  N=137 K=3 S=7 E=11  P=4
+  PASS  N=137 K=3 S=7 E=11  P=8
+  PASS  N=1000 K=5 S=8 E=200  P=1
+  PASS  N=1000 K=5 S=8 E=200  P=2
+  PASS  N=1000 K=5 S=8 E=200  P=4
+  PASS  N=1000 K=5 S=8 E=200  P=8
+  PASS  N=9973 K=10 S=16 E=64  P=1
+  PASS  N=9973 K=10 S=16 E=64  P=2
+  PASS  N=9973 K=10 S=16 E=64  P=4
+  PASS  N=9973 K=10 S=16 E=64  P=8
+  PASS  N=50000 K=10 S=32 E=500  P=1
+  PASS  N=50000 K=10 S=32 E=500  P=2
+  PASS  N=50000 K=10 S=32 E=500  P=4
+  PASS  N=50000 K=10 S=32 E=500  P=8
+  PASS  N=20000 K=5 S=300 E=4000  P=1
+  PASS  N=20000 K=5 S=300 E=4000  P=2
+  PASS  N=20000 K=5 S=300 E=4000  P=4
+  PASS  N=20000 K=5 S=300 E=4000  P=8
+
+RESULT: all checks passed
+
+written to results/correctness.txt
