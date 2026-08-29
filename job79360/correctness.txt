@@ -1,0 +1,61 @@
+Q2 correctness check - Wed Aug 26 16:40:36 IST 2026
+
+== supplied examples and edge cases ==
+  PASS  example1  P=1
+  PASS  example1  P=2
+  PASS  example1  P=4
+  PASS  example1  P=8
+  PASS  example2  P=1
+  PASS  example2  P=2
+  PASS  example2  P=4
+  PASS  example2  P=8
+  PASS  edge_n1  P=1
+  PASS  edge_n1  P=2
+  PASS  edge_n1  P=4
+  PASS  edge_n1  P=8
+  PASS  edge_m1  P=1
+  PASS  edge_m1  P=2
+  PASS  edge_m1  P=4
+  PASS  edge_m1  P=8
+  PASS  edge_p1  P=1
+  PASS  edge_p1  P=2
+  PASS  edge_p1  P=4
+  PASS  edge_p1  P=8
+
+== random cases, MPI vs sequential ==
+  PASS  60x60x60  P=1
+  PASS  60x60x60  P=2
+  PASS  60x60x60  P=4
+  PASS  60x60x60  P=8
+  PASS  100x64x80  P=1
+  PASS  100x64x80  P=2
+  PASS  100x64x80  P=4
+  PASS  100x64x80  P=8
+  PASS  100x63x80  P=1
+  PASS  100x63x80  P=2
+  PASS  100x63x80  P=4
+  PASS  100x63x80  P=8
+  PASS  400x20x30  P=1
+  PASS  400x20x30  P=2
+  PASS  400x20x30  P=4
+  PASS  400x20x30  P=8
+  PASS  20x400x30  P=1
+  PASS  20x400x30  P=2
+  PASS  20x400x30  P=4
+  PASS  20x400x30  P=8
+  PASS  1x50x40  P=1
+  PASS  1x50x40  P=2
+  PASS  1x50x40  P=4
+  PASS  1x50x40  P=8
+  PASS  30x1x40  P=1
+  PASS  30x1x40  P=2
+  PASS  30x1x40  P=4
+  PASS  30x1x40  P=8
+  PASS  50x37x1  P=1
+  PASS  50x37x1  P=2
+  PASS  50x37x1  P=4
+  PASS  50x37x1  P=8
+
+RESULT: all checks passed
+
+written to results/correctness.txt

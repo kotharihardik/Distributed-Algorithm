@@ -1,0 +1,45 @@
+Q4 triangle counting benchmark
+started : Wed Aug 26 12:30:31 IST 2026
+host    : node06.local
+reps    : 3 (fastest kept)
+seed    : 12345
+
+generating Small (V=20000 E=250000) ...
+wrote data/generated/Small.txt  (V=20000, E=250000, seed=12345)
+
+--- Small  V=20000  E=250000 ---
+  P=1  total   0.0365s   bcast  0.0000  build  0.0056  count  0.0243  reduce  0.0000
+  P=2  total   0.0260s   bcast  0.0015  build  0.0061  count  0.0124  reduce  0.0001
+  P=4  total   0.0210s   bcast  0.0022  build  0.0061  count  0.0061  reduce  0.0002
+  P=8  total   0.0192s   bcast  0.0031  build  0.0063  count  0.0032  reduce  0.0006
+generating Medium (V=10000 E=500000) ...
+wrote data/generated/Medium.txt  (V=10000, E=500000, seed=12345)
+
+--- Medium  V=10000  E=500000 ---
+  P=1  total   0.1978s   bcast  0.0000  build  0.0110  count  0.1766  reduce  0.0000
+  P=2  total   0.1127s   bcast  0.0025  build  0.0120  count  0.0882  reduce  0.0000
+  P=4  total   0.0717s   bcast  0.0055  build  0.0119  count  0.0445  reduce  0.0013
+  P=8  total   0.0515s   bcast  0.0056  build  0.0135  count  0.0230  reduce  0.0012
+generating Large (V=6000 E=750000) ...
+wrote data/generated/Large.txt  (V=6000, E=750000, seed=12345)
+
+--- Large  V=6000  E=750000 ---
+  P=1  total   0.6855s   bcast  0.0000  build  0.0158  count  0.6541  reduce  0.0000
+  P=2  total   0.3684s   bcast  0.0032  build  0.0174  count  0.3330  reduce  0.0000
+  P=4  total   0.2019s   bcast  0.0070  build  0.0176  count  0.1637  reduce  0.0011
+  P=8  total   0.1256s   bcast  0.0073  build  0.0200  count  0.0826  reduce  0.0019
+generating Verylarge (V=4000 E=1000000) ...
+wrote data/generated/Verylarge.txt  (V=4000, E=1000000, seed=12345)
+
+--- Verylarge  V=4000  E=1000000 ---
+  P=1  total   1.7793s   bcast  0.0000  build  0.0204  count  1.7388  reduce  0.0000
+  P=2  total   0.9165s   bcast  0.0043  build  0.0238  count  0.8677  reduce  0.0003
+  P=4  total   0.4872s   bcast  0.0082  build  0.0238  count  0.4349  reduce  0.0021
+  P=8  total   0.2742s   bcast  0.0091  build  0.0270  count  0.2181  reduce  0.0019
+
+finished: Wed Aug 26 12:30:53 IST 2026
+
+raw timings : results/benchmark_raw.csv
+transcript  : results/benchmark_log.txt
+tables      : results/report_tables.md
+graph       : skipped (no matplotlib on this machine)

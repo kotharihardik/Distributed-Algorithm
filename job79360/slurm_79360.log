@@ -1,0 +1,123 @@
+==========================================
+SLURM_JOB_ID = 79360
+SLURM_NODELIST = node06
+SLURM_JOB_GPUS = 
+==========================================
+=========================================
+job id    : 79360
+nodes     : 1
+tasks     : 8
+node list : node06
+started   : Wed Aug 26 16:40:34 IST 2026
+=========================================
+
+>> building
+mkdir -p bin
+mpicxx -O2 -std=c++17 -Wall -o bin/matmul_mpi src/matmul_mpi.cpp
+g++ -O2 -std=c++17 -Wall -o bin/matmul_seq src/matmul_seq.cpp
+g++ -O2 -std=c++17 -Wall -o bin/gen_matrix src/gen_matrix.cpp
+
+>> correctness
+Q2 correctness check - Wed Aug 26 16:40:36 IST 2026
+
+== supplied examples and edge cases ==
+  PASS  example1  P=1
+  PASS  example1  P=2
+  PASS  example1  P=4
+  PASS  example1  P=8
+  PASS  example2  P=1
+  PASS  example2  P=2
+  PASS  example2  P=4
+  PASS  example2  P=8
+  PASS  edge_n1  P=1
+  PASS  edge_n1  P=2
+  PASS  edge_n1  P=4
+  PASS  edge_n1  P=8
+  PASS  edge_m1  P=1
+  PASS  edge_m1  P=2
+  PASS  edge_m1  P=4
+  PASS  edge_m1  P=8
+  PASS  edge_p1  P=1
+  PASS  edge_p1  P=2
+  PASS  edge_p1  P=4
+  PASS  edge_p1  P=8
+
+== random cases, MPI vs sequential ==
+  PASS  60x60x60  P=1
+  PASS  60x60x60  P=2
+  PASS  60x60x60  P=4
+  PASS  60x60x60  P=8
+  PASS  100x64x80  P=1
+  PASS  100x64x80  P=2
+  PASS  100x64x80  P=4
+  PASS  100x64x80  P=8
+  PASS  100x63x80  P=1
+  PASS  100x63x80  P=2
+  PASS  100x63x80  P=4
+  PASS  100x63x80  P=8
+  PASS  400x20x30  P=1
+  PASS  400x20x30  P=2
+  PASS  400x20x30  P=4
+  PASS  400x20x30  P=8
+  PASS  20x400x30  P=1
+  PASS  20x400x30  P=2
+  PASS  20x400x30  P=4
+  PASS  20x400x30  P=8
+  PASS  1x50x40  P=1
+  PASS  1x50x40  P=2
+  PASS  1x50x40  P=4
+  PASS  1x50x40  P=8
+  PASS  30x1x40  P=1
+  PASS  30x1x40  P=2
+  PASS  30x1x40  P=4
+  PASS  30x1x40  P=8
+  PASS  50x37x1  P=1
+  PASS  50x37x1  P=2
+  PASS  50x37x1  P=4
+  PASS  50x37x1  P=8
+
+RESULT: all checks passed
+
+written to results/correctness.txt
+
+>> benchmark
+generating Small (500x500x500) ...
+
+--- Small  A=500x500  B=500x500 ---
+  P=1  total   0.0696s   scatter  0.0002  compute  0.0687  reduce  0.0008
+  P=2  total   0.0370s   scatter  0.0005  compute  0.0348  reduce  0.0017
+  P=4  total   0.0226s   scatter  0.0005  compute  0.0178  reduce  0.0043
+  P=8  total   0.0143s   scatter  0.0006  compute  0.0096  reduce  0.0041
+generating Medium (1000x1000x1000) ...
+
+--- Medium  A=1000x1000  B=1000x1000 ---
+  P=1  total   0.5410s   scatter  0.0007  compute  0.5380  reduce  0.0022
+  P=2  total   0.2850s   scatter  0.0017  compute  0.2790  reduce  0.0043
+  P=4  total   0.1559s   scatter  0.0017  compute  0.1431  reduce  0.0110
+  P=8  total   0.1198s   scatter  0.0018  compute  0.1080  reduce  0.0152
+generating Large (2000x2000x2000) ...
+
+--- Large  A=2000x2000  B=2000x2000 ---
+  P=1  total   5.6956s   scatter  0.0039  compute  5.6820  reduce  0.0097
+  P=2  total   3.2213s   scatter  0.0048  compute  3.2029  reduce  0.0137
+  P=4  total   1.6449s   scatter  0.0056  compute  1.6031  reduce  0.0369
+  P=8  total   1.0306s   scatter  0.0062  compute  0.9888  reduce  0.0485
+generating Verylarge (4000x4000x4000) ...
+
+--- Verylarge  A=4000x4000  B=4000x4000 ---
+  P=1  total  47.9416s   scatter  0.0169  compute 47.8871  reduce  0.0376
+  P=2  total  26.4314s   scatter  0.0162  compute 26.3636  reduce  0.0848
+  P=4  total  13.3534s   scatter  0.0191  compute 13.1997  reduce  0.1692
+  P=8  total   8.1199s   scatter  0.0200  compute  7.9603  reduce  0.1764
+
+finished: Wed Aug 26 16:46:47 IST 2026
+
+raw timings : results/benchmark_raw.csv
+transcript  : results/benchmark_log.txt
+tables      : results/report_tables.md
+graph       : skipped (needs scripts/plot_speedup.py and matplotlib)
+
+=========================================
+finished  : Wed Aug 26 16:46:47 IST 2026
+results in /home/cs3401.15/Assignment_2/Q2/results/
+=========================================

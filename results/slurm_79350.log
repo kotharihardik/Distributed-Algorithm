@@ -1,0 +1,127 @@
+==========================================
+SLURM_JOB_ID = 79350
+SLURM_NODELIST = node06
+SLURM_JOB_GPUS = 
+==========================================
+=========================================
+job id    : 79350
+nodes     : 1
+tasks     : 8
+node list : node06
+started   : Wed Aug 26 12:30:25 IST 2026
+=========================================
+
+>> building
+mkdir -p bin
+mpicxx -O2 -std=c++17 -Wall -o bin/tri_mpi src/tri_mpi.cpp
+g++ -O2 -std=c++17 -Wall -o bin/tri_seq src/tri_seq.cpp
+g++ -O2 -std=c++17 -Wall -o bin/gen_graph src/gen_graph.cpp
+
+>> correctness
+Q4 correctness check - Wed Aug 26 12:30:26 IST 2026
+
+== known-answer graphs ==
+  PASS  sample  P=1  (2)
+  PASS  sample  P=2  (2)
+  PASS  sample  P=4  (2)
+  PASS  sample  P=8  (2)
+  PASS  tri_single  P=1  (1)
+  PASS  tri_single  P=2  (1)
+  PASS  tri_single  P=4  (1)
+  PASS  tri_single  P=8  (1)
+  PASS  tri_none  P=1  (0)
+  PASS  tri_none  P=2  (0)
+  PASS  tri_none  P=4  (0)
+  PASS  tri_none  P=8  (0)
+  PASS  tri_k4  P=1  (4)
+  PASS  tri_k4  P=2  (4)
+  PASS  tri_k4  P=4  (4)
+  PASS  tri_k4  P=8  (4)
+  PASS  tri_k5  P=1  (10)
+  PASS  tri_k5  P=2  (10)
+  PASS  tri_k5  P=4  (10)
+  PASS  tri_k5  P=8  (10)
+  PASS  tri_star  P=1  (0)
+  PASS  tri_star  P=2  (0)
+  PASS  tri_star  P=4  (0)
+  PASS  tri_star  P=8  (0)
+  PASS  tri_two  P=1  (2)
+  PASS  tri_two  P=2  (2)
+  PASS  tri_two  P=4  (2)
+  PASS  tri_two  P=8  (2)
+
+== random graphs, MPI vs sequential ==
+  PASS  V=500 E=2000  P=1  (94 triangles)
+  PASS  V=500 E=2000  P=2  (94 triangles)
+  PASS  V=500 E=2000  P=4  (94 triangles)
+  PASS  V=500 E=2000  P=8  (94 triangles)
+  PASS  V=1000 E=20000  P=1  (11266 triangles)
+  PASS  V=1000 E=20000  P=2  (11266 triangles)
+  PASS  V=1000 E=20000  P=4  (11266 triangles)
+  PASS  V=1000 E=20000  P=8  (11266 triangles)
+  PASS  V=300 E=10000  P=1  (49572 triangles)
+  PASS  V=300 E=10000  P=2  (49572 triangles)
+  PASS  V=300 E=10000  P=4  (49572 triangles)
+  PASS  V=300 E=10000  P=8  (49572 triangles)
+  PASS  V=2000 E=4001  P=1  (13 triangles)
+  PASS  V=2000 E=4001  P=2  (13 triangles)
+  PASS  V=2000 E=4001  P=4  (13 triangles)
+  PASS  V=2000 E=4001  P=8  (13 triangles)
+  PASS  V=50 E=1000  P=1  (10631 triangles)
+  PASS  V=50 E=1000  P=2  (10631 triangles)
+  PASS  V=50 E=1000  P=4  (10631 triangles)
+  PASS  V=50 E=1000  P=8  (10631 triangles)
+  PASS  V=5000 E=6000  P=1  (4 triangles)
+  PASS  V=5000 E=6000  P=2  (4 triangles)
+  PASS  V=5000 E=6000  P=4  (4 triangles)
+  PASS  V=5000 E=6000  P=8  (4 triangles)
+  PASS  V=100 E=4950  P=1  (161700 triangles)
+  PASS  V=100 E=4950  P=2  (161700 triangles)
+  PASS  V=100 E=4950  P=4  (161700 triangles)
+  PASS  V=100 E=4950  P=8  (161700 triangles)
+
+RESULT: all checks passed
+
+written to results/correctness.txt
+
+>> benchmark
+generating Small (V=20000 E=250000) ...
+
+--- Small  V=20000  E=250000 ---
+  P=1  total   0.0365s   bcast  0.0000  build  0.0056  count  0.0243  reduce  0.0000
+  P=2  total   0.0260s   bcast  0.0015  build  0.0061  count  0.0124  reduce  0.0001
+  P=4  total   0.0210s   bcast  0.0022  build  0.0061  count  0.0061  reduce  0.0002
+  P=8  total   0.0192s   bcast  0.0031  build  0.0063  count  0.0032  reduce  0.0006
+generating Medium (V=10000 E=500000) ...
+
+--- Medium  V=10000  E=500000 ---
+  P=1  total   0.1978s   bcast  0.0000  build  0.0110  count  0.1766  reduce  0.0000
+  P=2  total   0.1127s   bcast  0.0025  build  0.0120  count  0.0882  reduce  0.0000
+  P=4  total   0.0717s   bcast  0.0055  build  0.0119  count  0.0445  reduce  0.0013
+  P=8  total   0.0515s   bcast  0.0056  build  0.0135  count  0.0230  reduce  0.0012
+generating Large (V=6000 E=750000) ...
+
+--- Large  V=6000  E=750000 ---
+  P=1  total   0.6855s   bcast  0.0000  build  0.0158  count  0.6541  reduce  0.0000
+  P=2  total   0.3684s   bcast  0.0032  build  0.0174  count  0.3330  reduce  0.0000
+  P=4  total   0.2019s   bcast  0.0070  build  0.0176  count  0.1637  reduce  0.0011
+  P=8  total   0.1256s   bcast  0.0073  build  0.0200  count  0.0826  reduce  0.0019
+generating Verylarge (V=4000 E=1000000) ...
+
+--- Verylarge  V=4000  E=1000000 ---
+  P=1  total   1.7793s   bcast  0.0000  build  0.0204  count  1.7388  reduce  0.0000
+  P=2  total   0.9165s   bcast  0.0043  build  0.0238  count  0.8677  reduce  0.0003
+  P=4  total   0.4872s   bcast  0.0082  build  0.0238  count  0.4349  reduce  0.0021
+  P=8  total   0.2742s   bcast  0.0091  build  0.0270  count  0.2181  reduce  0.0019
+
+finished: Wed Aug 26 12:30:53 IST 2026
+
+raw timings : results/benchmark_raw.csv
+transcript  : results/benchmark_log.txt
+tables      : results/report_tables.md
+graph       : skipped (no matplotlib on this machine)
+
+=========================================
+finished  : Wed Aug 26 12:30:53 IST 2026
+results in /home/cs3401.15/Assignment_2/Q4/results/
+=========================================

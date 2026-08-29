@@ -1,0 +1,37 @@
+Q2 column-row matrix multiplication benchmark
+started : Wed Aug 26 12:30:31 IST 2026
+host    : node06.local
+reps    : 3 (fastest kept)
+seed    : 12345
+
+
+--- Small  A=500x500  B=500x500 ---
+  P=1  total   0.0681s   scatter  0.0002  compute  0.0671  reduce  0.0008
+  P=2  total   0.0365s   scatter  0.0005  compute  0.0343  reduce  0.0018
+  P=4  total   0.0224s   scatter  0.0005  compute  0.0175  reduce  0.0044
+  P=8  total   0.0141s   scatter  0.0007  compute  0.0094  reduce  0.0042
+
+--- Medium  A=1000x1000  B=1000x1000 ---
+  P=1  total   0.5334s   scatter  0.0008  compute  0.5301  reduce  0.0025
+  P=2  total   0.2705s   scatter  0.0016  compute  0.2645  reduce  0.0044
+  P=4  total   0.1463s   scatter  0.0017  compute  0.1340  reduce  0.0106
+  P=8  total   0.0830s   scatter  0.0019  compute  0.0695  reduce  0.0122
+
+--- Large  A=2000x2000  B=2000x2000 ---
+  P=1  total   4.2646s   scatter  0.0040  compute  4.2507  reduce  0.0100
+  P=2  total   2.1291s   scatter  0.0048  compute  2.1131  reduce  0.0138
+  P=4  total   1.0965s   scatter  0.0056  compute  1.0571  reduce  0.0368
+  P=8  total   0.5808s   scatter  0.0062  compute  0.5332  reduce  0.0413
+
+--- Verylarge  A=4000x4000  B=4000x4000 ---
+  P=1  total  34.1072s   scatter  0.0169  compute 34.0523  reduce  0.0379
+  P=2  total  17.1217s   scatter  0.0161  compute 17.0530  reduce  0.0526
+  P=4  total   8.6454s   scatter  0.0196  compute  8.4921  reduce  0.1376
+  P=8  total   4.4430s   scatter  0.0201  compute  4.2672  reduce  0.1558
+
+finished: Wed Aug 26 12:34:59 IST 2026
+
+raw timings : results/benchmark_raw.csv
+transcript  : results/benchmark_log.txt
+tables      : results/report_tables.md
+graph       : skipped (no matplotlib on this machine)
