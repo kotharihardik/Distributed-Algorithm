@@ -1,0 +1,123 @@
+==========================================
+SLURM_JOB_ID = 80180
+SLURM_NODELIST = node06
+SLURM_JOB_GPUS = 
+==========================================
+=========================================
+job id    : 80180
+nodes     : 1
+tasks     : 8
+node list : node06
+started   : Sat Aug 29 12:11:35 IST 2026
+=========================================
+
+>> building
+make: Nothing to be done for 'all'.
+
+>> correctness
+Q2 correctness check - Sat Aug 29 12:11:35 IST 2026
+
+== supplied examples and edge cases ==
+  PASS  example1  P=1
+  PASS  example1  P=2
+  PASS  example1  P=4
+  PASS  example1  P=8
+  PASS  example2  P=1
+  PASS  example2  P=2
+  PASS  example2  P=4
+  PASS  example2  P=8
+  PASS  edge_n1  P=1
+  PASS  edge_n1  P=2
+  PASS  edge_n1  P=4
+  PASS  edge_n1  P=8
+  PASS  edge_m1  P=1
+  PASS  edge_m1  P=2
+  PASS  edge_m1  P=4
+  PASS  edge_m1  P=8
+  PASS  edge_p1  P=1
+  PASS  edge_p1  P=2
+  PASS  edge_p1  P=4
+  PASS  edge_p1  P=8
+
+== random cases, MPI vs sequential ==
+  PASS  60x60x60  P=1
+  PASS  60x60x60  P=2
+  PASS  60x60x60  P=4
+  PASS  60x60x60  P=8
+  PASS  100x64x80  P=1
+  PASS  100x64x80  P=2
+  PASS  100x64x80  P=4
+  PASS  100x64x80  P=8
+  PASS  100x63x80  P=1
+  PASS  100x63x80  P=2
+  PASS  100x63x80  P=4
+  PASS  100x63x80  P=8
+  PASS  400x20x30  P=1
+  PASS  400x20x30  P=2
+  PASS  400x20x30  P=4
+  PASS  400x20x30  P=8
+  PASS  20x400x30  P=1
+  PASS  20x400x30  P=2
+  PASS  20x400x30  P=4
+  PASS  20x400x30  P=8
+  PASS  1x50x40  P=1
+  PASS  1x50x40  P=2
+  PASS  1x50x40  P=4
+  PASS  1x50x40  P=8
+  PASS  30x1x40  P=1
+  PASS  30x1x40  P=2
+  PASS  30x1x40  P=4
+  PASS  30x1x40  P=8
+  PASS  50x37x1  P=1
+  PASS  50x37x1  P=2
+  PASS  50x37x1  P=4
+  PASS  50x37x1  P=8
+
+RESULT: all checks passed
+
+written to results/correctness.txt
+
+>> benchmark
+generating Tiny (100x100x100) ...
+
+--- Tiny  A=100x100  B=100x100 ---
+  P=1  total   0.0006s   scatter  0.0000  compute  0.0006  reduce  0.0000
+  P=2  total   0.0004s   scatter  0.0001  compute  0.0003  reduce  0.0001
+  P=4  total   0.0005s   scatter  0.0001  compute  0.0002  reduce  0.0002
+  P=8  total   0.0006s   scatter  0.0003  compute  0.0001  reduce  0.0003
+
+--- Small  A=500x500  B=500x500 ---
+  P=1  total   0.0695s   scatter  0.0001  compute  0.0686  reduce  0.0007
+  P=2  total   0.0368s   scatter  0.0005  compute  0.0347  reduce  0.0017
+  P=4  total   0.0222s   scatter  0.0005  compute  0.0177  reduce  0.0041
+  P=8  total   0.0138s   scatter  0.0006  compute  0.0094  reduce  0.0040
+
+--- Medium  A=1000x1000  B=1000x1000 ---
+  P=1  total   0.5412s   scatter  0.0007  compute  0.5382  reduce  0.0022
+  P=2  total   0.2861s   scatter  0.0015  compute  0.2808  reduce  0.0041
+  P=4  total   0.1536s   scatter  0.0017  compute  0.1419  reduce  0.0101
+  P=8  total   0.1193s   scatter  0.0017  compute  0.1082  reduce  0.0164
+
+--- Large  A=2000x2000  B=2000x2000 ---
+  P=1  total   5.6950s   scatter  0.0039  compute  5.6817  reduce  0.0095
+  P=2  total   3.1932s   scatter  0.0047  compute  3.1766  reduce  0.0141
+  P=4  total   1.6480s   scatter  0.0055  compute  1.6178  reduce  0.0464
+  P=8  total   1.0262s   scatter  0.0061  compute  0.9837  reduce  0.0421
+
+--- Verylarge  A=4000x4000  B=4000x4000 ---
+  P=1  total  47.9148s   scatter  0.0167  compute 47.8606  reduce  0.0374
+  P=2  total  26.5931s   scatter  0.0162  compute 26.5470  reduce  0.1020
+  P=4  total  13.3929s   scatter  0.0195  compute 13.2615  reduce  0.1503
+  P=8  total   8.1413s   scatter  0.0200  compute  7.9884  reduce  0.1949
+
+finished: Sat Aug 29 12:17:45 IST 2026
+
+raw timings : results/benchmark_raw.csv
+transcript  : results/benchmark_log.txt
+tables      : results/report_tables.md
+graph       : skipped (needs scripts/plot_speedup.py and matplotlib)
+
+=========================================
+finished  : Sat Aug 29 12:17:45 IST 2026
+results in /home/cs3401.15/Assignment_2/Q2/results/
+=========================================
