@@ -1,0 +1,382 @@
+==========================================================
+ Q4 - COMMANDS TO RUN, IN ORDER
+==========================================================
+
+Must be on IIIT network or VPN, otherwise the cluster is unreachable.
+
+
+----------------------------------------------------------
+ STEP 1 - ON YOUR MAC : copy folder to cluster
+----------------------------------------------------------
+
+cd /Users/hardikkothari/Music/sem_3/Distributed/Assignment_2
+    # go to the project folder on my Mac
+
+
+ssh rce "mkdir -p ~/Assignment_2"
+    # make a folder on the cluster before copying into it
+    # ssh rce      = log in ("rce" is my nickname, see ~/.ssh/config)
+    # "..."        = run this one command there, then come back
+    # mkdir -p     = create folder; -p means "don't complain if it exists"
+
+
+scp -r Q4 rce:~/Assignment_2/
+    # copy the Q4 folder up to the cluster
+    # scp          = secure copy (like cp, but over the network)
+    # -r           = recursive, copy the folder and everything inside
+    # rce:~/...    = destination. text before ":" is the machine,
+    #                after ":" is the path on that machine
+
+
+----------------------------------------------------------
+ STEP 2 - LOG IN
+----------------------------------------------------------
+
+ssh rce
+    # open a shell on the cluster's login node
+
+
+cd ~/Assignment_2/Q4
+    # move into the project folder there
+    # ~ means my home folder: /home/cs3401.15
+
+
+----------------------------------------------------------
+ STEP 3 - LOAD MPI
+----------------------------------------------------------
+
+module purge
+    # unload every module, start from a clean state
+    # avoids two MPI versions fighting each other
+
+
+module load openmpi/4.1.5
+    # load the MPI toolkit -> gives me mpicxx and mpirun
+    # MUST be openmpi/4.1.5. The hpcx module crashes on this cluster.
+
+
+----------------------------------------------------------
+ STEP 4 - COMPILE
+----------------------------------------------------------
+
+make
+    # compile all 3 programs into the bin/ folder
+    # it runs:  mpicxx -O2 -std=c++17 -Wall -o bin/tri_mpi src/tri_mpi.cpp
+    #   mpicxx     = C++ compiler that knows where MPI lives
+    #   -O2        = optimise the code (makes it much faster)
+    #   -std=c++17 = use the C++17 language version
+    #   -Wall      = show all warnings
+    #   -o <name>  = name of the output program
+    # (these are the compile flags to quote in the report)
+
+
+ls bin/
+    # check it worked. should show 3 files:
+    #   tri_mpi   the parallel program  (the actual answer)
+    #   tri_seq   the slow 1-core version (used to check correctness)
+    #   gen_graph  makes random test graphs
+
+
+----------------------------------------------------------
+ STEP 5 - ASK SLURM FOR 8 REAL CORES
+----------------------------------------------------------
+
+salloc --nodes=1 --ntasks=8 --hint=nomultithread --time=01:00:00 --partition=debug
+    # reserve cores on a compute node so my job can run
+    #
+    # salloc                = reserve resources and wait, interactive
+    # --nodes=1             = use ONE machine.
+    #                         MUST be 1 - multi-node MPI is broken here
+    # --ntasks=8            = reserve 8 cores (for P=8, the biggest test)
+    # --hint=nomultithread  = give me 8 REAL cores, not 8 fake hyperthreads.
+    #                         MUST have this, or P=8 runs at half speed
+    # --time=01:00:00       = reserve for 1 hour, then auto-release
+    # --partition=debug     = which queue. "debug" is the only one here
+    #
+    # NOTE: my shell stays on the LOGIN node. Only mpirun sends work to
+    # the compute node. So always use home-folder paths, never /tmp,
+    # because /tmp is different on each machine.
+
+
+----------------------------------------------------------
+ STEP 6 - SET THE LAUNCHER
+----------------------------------------------------------
+
+export LAUNCH="mpirun --mca pml ^ucx --mca osc ^ucx --bind-to core -np"
+    # save the mpirun command in a variable, so the scripts below use it
+    #
+    # export        = make this variable visible to the scripts I run
+    # mpirun        = the command that starts N copies of an MPI program
+    # --mca pml ^ucx and --mca osc ^ucx
+    #               = switch OFF the "ucx" network module.
+    #                 The cluster advertises it but the library file is
+    #                 missing, so without this every process prints an error.
+    #                 The "^" means "not this one".
+    # --bind-to core= pin each process to its own core and keep it there,
+    #                 so the OS doesn't shuffle them around
+    # -np           = "number of processes", the number comes right after.
+    #                 The scripts add it, e.g. -np 4
+
+
+----------------------------------------------------------
+ STEP 7 - CORRECTNESS CHECK
+----------------------------------------------------------
+
+bash scripts/run_correctness.sh
+    # prove the program gives the RIGHT answer
+    # runs the graphs whose answer I know by hand (the paper's example,
+    # K4, K5, a path, a star...) plus random graphs compared against
+    # tri_seq, at P = 1, 2, 4 and 8
+    #
+    # expect:  RESULT: all checks passed     (56 pass, 0 fail)
+    # saves to results/correctness.txt
+
+
+----------------------------------------------------------
+ STEP 8 - BENCHMARK   (takes about 4 minutes)
+----------------------------------------------------------
+
+bash scripts/run_benchmark.sh
+    # measure how FAST it is
+    # creates the 4 graphs (Small/Medium/Large/Verylarge) if missing,
+    # runs each at P = 1, 2, 4, 8, three times, keeps the fastest
+    #
+    #   Small      V=20000  E=250000
+    #   Medium     V=10000  E=500000
+    #   Large      V=6000   E=750000
+    #   Verylarge  V=4000   E=1000000   <- the paper's maximum E
+    #
+    # saves:
+    #   results/benchmark_raw.csv    every single measurement
+    #   results/benchmark_log.txt    readable log
+    #   results/report_tables.md     <- the tables for my report
+
+
+----------------------------------------------------------
+ STEP 9 - LEAVE
+----------------------------------------------------------
+
+exit
+    # release the 8 cores I reserved in step 5.
+    # DO NOT SKIP - holding cores I'm not using blocks other students
+
+
+exit
+    # log out of the cluster
+
+
+----------------------------------------------------------
+ STEP 10 - ON YOUR MAC : bring results back
+----------------------------------------------------------
+
+cd /Users/hardikkothari/Music/sem_3/Distributed/Assignment_2
+    # back on my own machine now
+
+
+rm -rf Q4/results
+    # delete the old local results first, so old and new don't mix
+    # rm  = remove,  -r = folders too,  -f = don't ask me to confirm
+
+
+scp -r rce:~/Assignment_2/Q4/results Q4/
+    # copy the results folder DOWN from the cluster
+    # same as before but reversed: cluster path first, my path second
+
+
+rm -rf Q4/results/.work
+    # delete the scratch folder the correctness test used. not needed.
+
+
+----------------------------------------------------------
+ STEP 11 - ON YOUR MAC : make the graph
+----------------------------------------------------------
+
+cd Q4
+
+python3 scripts/plot_speedup.py results/benchmark_raw.csv results/speedup.png
+    # draw the "speed-up vs number of processes" graph
+    # arg 1 = the measurements to read
+    # arg 2 = the image file to write
+    # done on my Mac because the cluster has no matplotlib installed
+
+
+==========================================================
+ SHORTEST - using the Makefile
+==========================================================
+
+module purge && module load openmpi/4.1.5
+    # load MPI first, same as STEP 3
+
+make
+    # compile everything (same as: make)
+
+make run
+    # run the example from the question paper
+    # add P=8 to change the process count:   make run P=8
+
+make ctest
+    # asks SLURM for 8 real cores, runs the correctness check, then gives
+    # the cores straight back. Replaces STEP 5 + STEP 7 + the first exit.
+    # The --hint=nomultithread flag is built in, so it cannot be forgotten.
+
+make cbench
+    # same thing for the benchmark. Replaces STEP 5 + STEP 8 + exit.
+
+make test
+    # correctness check at P = 1, 2, 4, 8
+
+make bench
+    # timing sweep (do this inside an salloc, see STEP 5)
+
+make submit
+    # sbatch the whole job
+
+make queue
+    # squeue -u $USER
+
+make help
+    # list every target
+
+    # NOTE: make picks the right mpirun flags for the machine by itself -
+    # --bind-to core on the cluster, --oversubscribe on a Mac.
+
+
+==========================================================
+ SHORTCUT - skip steps 5 to 9
+==========================================================
+
+ssh rce
+
+cd ~/Assignment_2/Q4
+
+sbatch scripts/job_q4.slurm
+    # hand the whole job to SLURM and walk away.
+    # It does steps 3,4,5,6,7,8 by itself, whenever cores are free.
+    # sbatch = submit a batch job. Prints a job number, e.g. 78756
+
+
+squeue -u $USER
+    # show my jobs.  -u $USER = only mine, not everyone's
+    # ST column:  PD = waiting,  R = running
+    # when the list is empty, the job is done (~5 min)
+
+
+    then do STEP 10 and STEP 11
+
+
+==========================================================
+ EXTRA - run single things by hand
+==========================================================
+
+(do these after STEP 6, while inside the allocation)
+
+
+-- run the example from the question paper --
+
+mpirun --mca pml ^ucx --mca osc ^ucx --bind-to core -np 4 bin/tri_mpi data/sample.txt
+    # -np 4              = start 4 processes
+    # bin/tri_mpi        = the program
+    # data/sample.txt    = the graph file
+    #
+    # the answer is just one number, printed on screen:
+    #     2
+    # (the two triangles are {0,1,2} and {0,2,3})
+
+
+-- check the MPI answer equals the sequential answer --
+
+bin/tri_seq data/sample.txt
+    # the slow 1-core version. prints the same single number.
+
+mpirun --mca pml ^ucx --mca osc ^ucx --bind-to core -np 8 bin/tri_mpi data/sample.txt
+    # the 8-process version. both numbers must match.
+
+
+-- a graph where I know the answer for sure --
+
+mpirun --mca pml ^ucx --mca osc ^ucx --bind-to core -np 8 bin/tri_mpi data/tri_k5.txt
+    # K5 = 5 vertices, all connected to each other.
+    # every group of 3 vertices is a triangle, so the answer must be
+    # exactly C(5,3) = 10. Good sanity check.
+
+
+-- make one graph file myself --
+
+mkdir -p data/generated
+
+bin/gen_graph 6000 750000 12345 data/generated/Large.txt
+    # arguments in order:  V  E  seed  outfile
+    #   V 6000    = number of vertices (0 to 5999)
+    #   E 750000  = number of edges, all distinct, no self-loops
+    #   seed      = random seed. SAME seed always makes the SAME file,
+    #               which is what "reproducible" means in the deliverables
+    #   outfile   = where to write it
+    #
+    # limits from the question paper:  V <= 100000,  E <= 1000000
+
+
+-- time one graph --
+
+mpirun --mca pml ^ucx --mca osc ^ucx --bind-to core -np 8 bin/tri_mpi data/generated/Large.txt --time
+    # --time = also print the timing breakdown to the screen:
+    #     read   = time reading the file (rank 0 only)
+    #     bcast  = time sending the edge list to every process
+    #     build  = time building the adjacency lists
+    #              (every process does this same work - it does NOT
+    #               get faster with more processes. this is the limit
+    #               on how much speed-up is possible)
+    #     count  = time actually counting triangles (this part scales)
+    #     reduce = time adding all the process counts together
+    #     total  = all of it
+
+
+-- all 4 process counts, one after another --
+
+for P in 1 2 4 8; do
+    echo "--- P=$P ---"
+    mpirun --mca pml ^ucx --mca osc ^ucx --bind-to core -np $P bin/tri_mpi data/generated/Large.txt --time
+done
+    # a loop. P becomes 1, then 2, then 4, then 8.
+    # $P inserts the current value into the command.
+    # the triangle count must be IDENTICAL for all 4 - if it changes,
+    # something is double-counting.
+
+
+==========================================================
+ SLURM COMMANDS
+==========================================================
+
+squeue -u $USER           # my jobs. empty list = nothing running
+scancel 78756             # cancel a job by its number
+sacct -j 78756            # did it finish? COMPLETED / FAILED + exit code
+sinfo                     # which nodes are free right now
+
+
+==========================================================
+ IF SOMETHING BREAKS
+==========================================================
+
+cat results/slurm_78756.err      # errors only. empty file = clean run
+cat results/slurm_78756.log      # everything the job printed
+                                 # (replace 78756 with my job number)
+
+
+  "munmap_chunk(): invalid pointer"
+        -> wrong MPI module. use openmpi/4.1.5, not hpcx
+
+  "libucp.so.0: cannot open"
+        -> the two --mca ucx flags are missing from mpirun
+
+  P=8 is not faster than P=4
+        -> --hint=nomultithread is missing.
+           I got 8 hyperthreads on 4 real cores instead of 8 real cores.
+
+  "No such file or directory" on a file I just wrote
+        -> I used a /tmp path. Use home folder paths only.
+           /tmp is NOT shared between login node and compute node.
+
+  hangs forever with no output
+        -> I asked for more than 1 node. Use --nodes=1
+
+
+==========================================================

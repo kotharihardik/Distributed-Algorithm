@@ -1,54 +1,18 @@
-/*
- * Q4 - Counting triangles in an undirected graph with MPI.
- *
- * Method: orient every edge, then intersect forward adjacency lists.
- *
- * Give each vertex a rank, ordered by degree and broken by id:
- *
- *      u before v   <=>   (deg[u], u) < (deg[v], v)
- *
- * and point every edge from the earlier vertex to the later one. Write N+(x)
- * for the vertices x points at. For a triangle {a, b, c} with a before b
- * before c, the edges come out a->b, a->c, b->c, and c turns up in N+(a) and
- * in N+(b) but nowhere else. So walking the edges and adding |N+(u) & N+(v)|
- * for each one finds every triangle exactly once - no halving, no divide by
- * three, and nothing to undo afterwards.
- *
- * That last property is what makes the parallel version easy: the edges are
- * split into equal blocks, one block per process, and because a triangle is
- * only ever counted at one particular edge, two processes can never count the
- * same triangle. A single MPI_Reduce at the end adds the blocks up.
- *
- * Ordering by degree rather than by id matters. With plain id order a
- * low-numbered hub ends up with almost all of its edges pointing outward and
- * its forward list becomes enormous; by degree, no forward list is longer
- * than about sqrt(2E).
- *
- * Build : mpicxx -O2 -std=c++17 -o tri_mpi tri_mpi.cpp
- * Run   : mpirun -np 4 ./tri_mpi graph.txt
- */
-
 #include <mpi.h>
-
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <vector>
 
 using namespace std;
 
-/* ---------- input ---------------------------------------------------- */
 
-/*
- * Up to a million edges means two million numbers to parse, and scanf spends
- * more time on that than the triangle count itself takes. Slurp the file and
- * pick the integers out by hand instead.
- */
-static bool read_graph(const char *path, int &V, vector<int> &eu, vector<int> &ev)
+/* Read graph */
+bool read_graph(const char *fileName, int &V,
+                vector<int> &eu, vector<int> &ev)
 {
-    FILE *f = fopen(path, "rb");
+    FILE *f = fopen(fileName, "rb");
     if (!f) {
-        fprintf(stderr, "cannot open %s\n", path);
+        fprintf(stderr, "cannot open %s\n", fileName);
         return false;
     }
 
@@ -56,47 +20,43 @@ static bool read_graph(const char *path, int &V, vector<int> &eu, vector<int> &e
     long size = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    vector<char> buf(size + 1);
-    size_t got = fread(buf.data(), 1, size, f);
-    buf[got] = '\0';
+    vector<char> data(size + 1);
+    size_t n = fread(data.data(), 1, size, f);
+    data[n] = '\0';
     fclose(f);
 
-    const char *p = buf.data();
-    const char *end = buf.data() + got;
+    const char *p =data.data();
+    const char *end = data.data() + n;
 
-    /* pulls the next non-negative integer out of the buffer */
-    auto next_int = [&](int &out) -> bool {
+    auto next_int = [&](int &x) {
         while (p < end && (*p < '0' || *p > '9')) p++;
         if (p >= end) return false;
-        int val = 0;
+
+        x = 0;
         while (p < end && *p >= '0' && *p <= '9') {
-            val = val * 10 + (*p - '0');
+            x = x *10 + (*p - '0');
             p++;
         }
-        out = val;
         return true;
     };
 
-    int declared_edges = 0;
-    if (!next_int(V) || !next_int(declared_edges)) {
-        fprintf(stderr, "bad header in %s (expected: V E)\n", path);
-        return false;
-    }
-    if (V <= 0) {
-        fprintf(stderr, "V must be positive\n");
+    int E;
+
+    if (!next_int(V) || !next_int(E) || V <= 0) {
+        fprintf(stderr, "bad input\n");
         return false;
     }
 
-    eu.clear();
-    ev.clear();
-    eu.reserve(declared_edges);
-    ev.reserve(declared_edges);
+    eu.reserve(E);
+    ev.reserve(E);
 
-    int u, v;
+    int u,v;
+
     while (next_int(u)) {
         if (!next_int(v)) break;
-        if (u == v) continue;                       /* self-loop, no triangle */
-        if (u < 0 || v < 0 || u >= V || v >= V) continue;
+        if (u == v) continue;
+        if (u < 0 || v < 0 || u >= V || v>= V) continue;
+
         eu.push_back(u);
         ev.push_back(v);
     }
@@ -104,81 +64,105 @@ static bool read_graph(const char *path, int &V, vector<int> &eu, vector<int> &e
     return true;
 }
 
-/* ---------- shared by both the counting and the setup ----------------- */
 
-/*
- * Builds the forward adjacency in compressed form: fadj holds every forward
- * neighbour, and fstart[x] .. fstart[x+1] delimits the block belonging to x.
- *
- * Each block comes out in increasing order, which the intersection below
- * relies on. That is arranged without any comparison sort: bucket the edges
- * by their head first, then walk that ordering while filling the blocks by
- * tail. Because the second pass is stable, the heads inside every block are
- * already ascending. Two linear passes instead of E log E.
- */
-static void build_forward(int V, const vector<int> &eu, const vector<int> &ev,
-                          vector<int> &fstart, vector<int> &fadj,
-                          vector<int> &oa, vector<int> &ob)
+/* Build forward adjacency */
+void build_forward(int V, const vector<int> &eu, const vector<int> &ev,
+                   vector<int> &start, vector<int> &adj,
+                   vector<int> &outU, vector<int> &outV)
 {
-    size_t m = eu.size();
+    int E = eu.size();
 
-    vector<int> deg(V, 0);
-    for (size_t i = 0; i < m; i++) {
-        deg[eu[i]]++;
-        deg[ev[i]]++;
+    vector<int> degree(V, 0);
+
+    for (int i = 0; i<E; i++) {
+        degree[eu[i]]++;
+        degree[ev[i]]++;
     }
 
-    /* orient: low degree first, id settles ties */
-    oa.resize(m);
-    ob.resize(m);
-    for (size_t i = 0; i < m; i++) {
-        int u = eu[i], v = ev[i];
-        bool u_first = (deg[u] < deg[v]) || (deg[u] == deg[v] && u < v);
-        oa[i] = u_first ? u : v;
-        ob[i] = u_first ? v : u;
+    /* Orient every edge using degree, then vertex id */
+    outU.resize(E);
+    outV.resize(E);
+
+    for (int i = 0; i < E; i++) {
+        int u = eu[i], v =ev[i];
+
+        if (degree[u] < degree[v] ||
+            (degree[u] == degree[v] && u < v)) {
+            outU[i] = u;
+            outV[i] = v;
+        }
+        else {
+            outU[i] = v;
+            outV[i] = u;
+        }
     }
 
-    /* pass 1 - order the edges by head */
-    vector<int> head_count(V + 1, 0);
-    for (size_t i = 0; i < m; i++) head_count[ob[i]]++;
-    for (int x = 0; x < V; x++) head_count[x + 1] += head_count[x];
+    /* Count edges by their head */
+    vector<int> head(V + 1, 0);
 
-    vector<int> by_head(m);
-    for (size_t i = m; i-- > 0; ) by_head[--head_count[ob[i]]] = (int)i;
+    for (int i = 0; i < E; i++)
+        head[outV[i]]++;
 
-    /* pass 2 - fill the blocks by tail, keeping pass 1's order */
-    fstart.assign(V + 1, 0);
-    for (size_t i = 0; i < m; i++) fstart[oa[i]]++;
-    int running = 0;
-    for (int x = 0; x < V; x++) {
-        int c = fstart[x];
-        fstart[x] = running;
-        running += c;
+    for (int i = 0; i < V; i++)
+        head[i + 1] += head[i];
+
+    vector<int> order(E);
+
+    for (int i = E - 1; i >= 0; i--) {
+        int v = outV[i];
+        head[v]--;
+        order[head[v]] = i;
     }
-    fstart[V] = running;
 
-    vector<int> fill = fstart;
-    fadj.resize(m);
-    for (size_t k = 0; k < m; k++) {
-        int e = by_head[k];
-        fadj[fill[oa[e]]++] = ob[e];
+    /* Find starting position of every forward list */
+    start.assign(V + 1, 0);
+
+    for (int i = 0; i < E; i++)
+        start[outU[i]]++;
+
+    int pos = 0;
+
+    for (int i = 0; i < V; i++) {
+        int c = start[i];
+        start[i] = pos;
+        pos += c;
+    }
+
+    start[V] = pos;
+
+    vector<int> next = start;
+    adj.resize(E);
+
+    for (int i = 0; i < E; i++) {
+        int e = order[i];
+        adj[next[outU[e]]++] = outV[e];
     }
 }
 
-/* how many vertices appear in both blocks - ordinary two-pointer walk */
-static inline long long shared(const int *a, int alen, const int *b, int blen)
+
+/* Count common neighbours */
+long long common(const int *a, int n, const int *b, int m)
 {
-    long long hits = 0;
     int i = 0, j = 0;
-    while (i < alen && j < blen) {
-        if (a[i] == b[j]) { hits++; i++; j++; }
-        else if (a[i] < b[j]) i++;
-        else j++;
+    long long count = 0;
+
+    while (i < n && j < m) {
+        if (a[i] == b[j]) {
+            count++;
+            i++;
+            j++;
+        }
+        else if (a[i] < b[j]) {
+            i++;
+        }
+        else {
+            j++;
+        }
     }
-    return hits;
+
+    return count;
 }
 
-/* ---------- main ------------------------------------------------------ */
 
 int main(int argc, char **argv)
 {
@@ -188,16 +172,20 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    const char *in_path = nullptr;
-    bool show_time = false;
+    const char *fileName = nullptr;
+    bool showTime = false;
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--time") == 0) show_time = true;
-        else if (!in_path) in_path = argv[i];
+        if (strcmp(argv[i], "--time") == 0)
+            showTime = true;
+        else if (!fileName)
+            fileName = argv[i];
     }
 
-    if (!in_path) {
-        if (rank == 0) fprintf(stderr, "usage: %s <graph> [--time]\n", argv[0]);
+    if (!fileName) {
+        if (rank == 0)
+            fprintf(stderr, "usage: %s <graph> [--time]\n", argv[0]);
+
         MPI_Finalize();
         return 1;
     }
@@ -205,86 +193,96 @@ int main(int argc, char **argv)
     int V = 0;
     vector<int> eu, ev;
 
-    double t_start = MPI_Wtime();
+    double t0 = MPI_Wtime();
 
-    if (rank == 0 && !read_graph(in_path, V, eu, ev)) V = -1;
+    if (rank == 0 && !read_graph(fileName, V, eu, ev))
+        V = -1;
 
-    int header[2] = { V, rank == 0 ? (int)eu.size() : 0 };
-    MPI_Bcast(header, 2, MPI_INT, 0, MPI_COMM_WORLD);
-    V = header[0];
-    int m = header[1];
+    int info[2] = {V, rank == 0 ? (int)eu.size() : 0};
+
+    MPI_Bcast(info, 2, MPI_INT, 0, MPI_COMM_WORLD);
+
+    V = info[0];
+    int E = info[1];
 
     if (V < 0) {
         MPI_Finalize();
         return 1;
     }
 
-    double t_read = MPI_Wtime();
+    double t1 = MPI_Wtime();
 
-    /*
-     * Every process needs the whole edge list, because a triangle sitting on
-     * one process's edge can close through a vertex owned by any other. At
-     * the stated limit of a million edges that is 8 MB per process, which is
-     * nothing, and it buys a counting phase with no communication in it at
-     * all. The work - the edges each process is responsible for - is what
-     * gets divided, and that division is what keeps the count honest.
-     */
     if (rank != 0) {
-        eu.resize(m);
-        ev.resize(m);
-    }
-    if (m > 0) {
-        MPI_Bcast(eu.data(), m, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Bcast(ev.data(), m, MPI_INT, 0, MPI_COMM_WORLD);
+        eu.resize(E);
+        ev.resize(E);
     }
 
-    double t_bcast = MPI_Wtime();
+    if (E > 0) {
+        MPI_Bcast(eu.data(), E, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(ev.data(), E, MPI_INT, 0, MPI_COMM_WORLD);
+    }
 
-    vector<int> fstart, fadj, oa, ob;
-    if (m > 0) build_forward(V, eu, ev, fstart, fadj, oa, ob);
+    double t2 = MPI_Wtime();
 
-    double t_build = MPI_Wtime();
+    vector<int> start, adj, outU, outV;
 
-    /* this process takes edges [lo, hi); the first m % size blocks get one extra */
-    int base = m / size;
-    int rem  = m % size;
-    int lo = rank * base + (rank < rem ? rank : rem);
-    int hi = lo + base + (rank < rem ? 1 : 0);
+    if (E > 0)
+        build_forward(V, eu, ev, start, adj, outU, outV);
+
+    double t3 = MPI_Wtime();
+
+    /* Divide edges between processes */
+    int base = E / size;
+    int extra = E % size;
+
+    int lo = rank * base + (rank < extra ? rank : extra);
+    int hi = lo + base + (rank < extra ? 1 : 0);
 
     long long local = 0;
+
     for (int i = lo; i < hi; i++) {
-        int a = oa[i], b = ob[i];
-        local += shared(&fadj[fstart[a]], fstart[a + 1] - fstart[a],
-                        &fadj[fstart[b]], fstart[b + 1] - fstart[b]);
+        int u = outU[i];
+        int v = outV[i];
+
+        local += common(&adj[start[u]], start[u + 1] - start[u],
+                        &adj[start[v]], start[v + 1] - start[v]);
     }
 
-    double t_count = MPI_Wtime();
+    double t4 = MPI_Wtime();
 
     long long total = 0;
-    MPI_Reduce(&local, &total, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    double t_end = MPI_Wtime();
+    MPI_Reduce(&local, &total, 1, MPI_LONG_LONG,
+               MPI_SUM, 0, MPI_COMM_WORLD);
 
-    if (rank == 0) printf("%lld\n", total);
+    double t5 = MPI_Wtime();
 
-    if (show_time) {
-        double mine[6] = { t_read  - t_start,
-                           t_bcast - t_read,
-                           t_build - t_bcast,
-                           t_count - t_build,
-                           t_end   - t_count,
-                           t_end   - t_start };
-        double worst[6];
-        MPI_Reduce(mine, worst, 6, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    if (rank == 0)
+        printf("%lld\n", total);
+
+    if (showTime) {
+        double times[6] = {
+            t1 - t0,
+            t2 - t1,
+            t3 - t2,
+            t4 - t3,
+            t5 - t4,
+            t5 - t0
+        };
+
+        double maxTimes[6];
+
+        MPI_Reduce(times, maxTimes, 6, MPI_DOUBLE,
+                   MPI_MAX, 0, MPI_COMM_WORLD);
 
         if (rank == 0) {
-            fprintf(stderr, "procs %d  V %d  E %d\n", size, V, m);
-            fprintf(stderr, "read     %.6f\n", worst[0]);
-            fprintf(stderr, "bcast    %.6f\n", worst[1]);
-            fprintf(stderr, "build    %.6f\n", worst[2]);
-            fprintf(stderr, "count    %.6f\n", worst[3]);
-            fprintf(stderr, "reduce   %.6f\n", worst[4]);
-            fprintf(stderr, "total    %.6f\n", worst[5]);
+            fprintf(stderr, "procs %d  V %d  E %d\n", size, V, E);
+            fprintf(stderr, "read     %.6f\n", maxTimes[0]);
+            fprintf(stderr, "bcast    %.6f\n", maxTimes[1]);
+            fprintf(stderr, "build    %.6f\n", maxTimes[2]);
+            fprintf(stderr, "count    %.6f\n", maxTimes[3]);
+            fprintf(stderr, "reduce   %.6f\n", maxTimes[4]);
+            fprintf(stderr, "total    %.6f\n", maxTimes[5]);
         }
     }
 
