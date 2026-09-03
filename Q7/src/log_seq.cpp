@@ -247,8 +247,8 @@ int main(int argc, char *argv[]){
         cerr.setf(ios::fixed);
         cerr.precision(6);
         cerr << "procs 1  N " << N << "  K " << K << "  S " << S << endl;
-        cerr << "compute  " << seconds << endl;
-        cerr << "total    " << seconds << endl;
+        cerr << "compute " << seconds << endl;
+        cerr << "total " << seconds << endl;
     }
 
     return 0;

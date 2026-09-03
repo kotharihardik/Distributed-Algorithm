@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     unsigned seed = (unsigned)strtoul(argv[3], nullptr, 10);
     const char *fileName = argv[4];
 
-    if (V < 3 || E < 1) {
+    if (V < 3 ||E < 1) {
         fprintf(stderr, "need V >= 3 and E >= 1\n");
         return 1;
     }
@@ -40,8 +40,7 @@ int main(int argc, char **argv)
         while (true) {
             unsigned long long r = rng();
 
-            if (r < limit)
-                return r / bucket;
+            if (r < limit) return r / bucket;
         }
     };
 
@@ -57,12 +56,8 @@ int main(int argc, char **argv)
             long long u = bounded(V);
             long long v = bounded(V);
 
-            if (u == v)
-                continue;
-
-            if (u > v)
-                swap(u, v);
-
+            if (u == v)  continue;
+            if (u > v) swap(u, v);
             edges.push_back(u * V + v);
         }
     };
@@ -72,8 +67,7 @@ int main(int argc, char **argv)
      * For dense graphs it is faster to create all possible edges
      * and then choose E of them.
      */
-    bool dense = (maxEdges <= 50000000LL &&
-                  E * 3 > maxEdges);
+    bool dense = (maxEdges <= 50000000LL && E * 3 > maxEdges);
 
     if (dense) {
         edges.clear();

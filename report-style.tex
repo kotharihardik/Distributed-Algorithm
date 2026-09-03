@@ -1,0 +1,31 @@
+% Layout for REPORT.md -> REPORT.pdf
+% pandoc REPORT.md -o REPORT.pdf --pdf-engine=xelatex -H report-style.tex ...
+
+% Keep figures exactly where they appear in the text instead of letting
+% LaTeX float them onto a page of their own.
+\usepackage{float}
+\floatplacement{figure}{H}
+
+% Graphs at 60% of the text width, which is what lets a speed-up table and
+% its graph sit together on one page instead of the graph pushing to the next.
+\setkeys{Gin}{width=0.60\linewidth}
+
+% Give the three heading levels visibly different sizes.
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-3.0ex \@plus -1ex \@minus -.2ex}{2.0ex \@plus .2ex}%
+  {\normalfont\LARGE\bfseries}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-3.0ex \@plus -1ex \@minus -.2ex}{1.6ex \@plus .2ex}%
+  {\normalfont\Large\bfseries}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {-2.6ex \@plus -1ex \@minus -.2ex}{1.1ex \@plus .2ex}%
+  {\normalfont\large\bfseries}}
+\makeatother
+
+% Roomier tables.
+\setlength{\tabcolsep}{7pt}
+\renewcommand{\arraystretch}{1.15}
+
+% Slightly tighter paragraph spacing than pandoc's default.
+\setlength{\parskip}{0.6em}

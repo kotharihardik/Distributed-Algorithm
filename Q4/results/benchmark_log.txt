@@ -1,37 +1,37 @@
 Q4 triangle counting benchmark
-started : Wed Aug 26 22:54:56 IST 2026
-host    : node06.local
+started : Wed Sep  2 00:38:14 IST 2026
+host    : rce.iiit.ac.in
 reps    : 3 (fastest kept)
 seed    : 12345
 
 
 --- Small  V=20000  E=250000 ---
-  P=1  total   0.0370s   bcast  0.0000  build  0.0060  count  0.0251  reduce  0.0000
-  P=2  total   0.0268s   bcast  0.0015  build  0.0065  count  0.0127  reduce  0.0001
-  P=4  total   0.0217s   bcast  0.0027  build  0.0064  count  0.0065  reduce  0.0001
-  P=8  total   0.0198s   bcast  0.0036  build  0.0068  count  0.0033  reduce  0.0007
+  P=1  total   0.0361s   bcast  0.0000  build  0.0056  count  0.0247  reduce  0.0000
+  P=2  total   0.0257s   bcast  0.0012  build  0.0060  count  0.0125  reduce  0.0002
+  P=4  total   0.0202s   bcast  0.0024  build  0.0061  count  0.0064  reduce  0.0003
+  P=8  total   0.0182s   bcast  0.0032  build  0.0062  count  0.0032  reduce  0.0007
 
 --- Medium  V=10000  E=500000 ---
-  P=1  total   0.2070s   bcast  0.0000  build  0.0144  count  0.1843  reduce  0.0000
-  P=2  total   0.1198s   bcast  0.0030  build  0.0139  count  0.0939  reduce  0.0001
-  P=4  total   0.0753s   bcast  0.0055  build  0.0134  count  0.0475  reduce  0.0015
-  P=8  total   0.0560s   bcast  0.0067  build  0.0153  count  0.0242  reduce  0.0015
+  P=1  total   0.1965s   bcast  0.0000  build  0.0108  count  0.1767  reduce  0.0000
+  P=2  total   0.1121s   bcast  0.0024  build  0.0121  count  0.0886  reduce  0.0006
+  P=4  total   0.0703s   bcast  0.0055  build  0.0119  count  0.0445  reduce  0.0019
+  P=8  total   0.0500s   bcast  0.0052  build  0.0133  count  0.0230  reduce  0.0012
 
 --- Large  V=6000  E=750000 ---
-  P=1  total   0.7193s   bcast  0.0000  build  0.0190  count  0.6859  reduce  0.0000
-  P=2  total   0.3923s   bcast  0.0038  build  0.0206  count  0.3549  reduce  0.0002
-  P=4  total   0.2183s   bcast  0.0077  build  0.0202  count  0.1772  reduce  0.0033
-  P=8  total   0.1343s   bcast  0.0082  build  0.0228  count  0.0900  reduce  0.0020
+  P=1  total   0.6779s   bcast  0.0000  build  0.0146  count  0.6500  reduce  0.0000
+  P=2  total   0.3611s   bcast  0.0030  build  0.0174  count  0.3275  reduce  0.0015
+  P=4  total   0.2013s   bcast  0.0067  build  0.0176  count  0.1642  reduce  0.0029
+  P=8  total   0.1226s   bcast  0.0070  build  0.0200  count  0.0831  reduce  0.0003
 
 --- Verylarge  V=4000  E=1000000 ---
-  P=1  total   1.8489s   bcast  0.0000  build  0.0263  count  1.8045  reduce  0.0000
-  P=2  total   0.9768s   bcast  0.0049  build  0.0286  count  0.9248  reduce  0.0018
-  P=4  total   0.5195s   bcast  0.0093  build  0.0290  count  0.4627  reduce  0.0024
-  P=8  total   0.2906s   bcast  0.0102  build  0.0298  count  0.2328  reduce  0.0018
+  P=1  total   1.7782s   bcast  0.0000  build  0.0206  count  1.7405  reduce  0.0000
+  P=2  total   0.9210s   bcast  0.0035  build  0.0241  count  0.8761  reduce  0.0017
+  P=4  total   0.4870s   bcast  0.0083  build  0.0238  count  0.4377  reduce  0.0039
+  P=8  total   0.2748s   bcast  0.0089  build  0.0274  count  0.2215  reduce  0.0022
 
-finished: Wed Aug 26 22:55:18 IST 2026
+finished: Wed Sep  2 00:38:40 IST 2026
 
 raw timings : results/benchmark_raw.csv
 transcript  : results/benchmark_log.txt
 tables      : results/report_tables.md
-graph       : skipped (no matplotlib on this machine)
+graph       : skipped (needs scripts/plot_speedup.py and matplotlib)

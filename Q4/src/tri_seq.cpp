@@ -15,14 +15,10 @@ int main(int argc, char* argv[])
     // Read command line arguments
     for (int i = 1; i < argc; i++)
     {
-        if (strcmp(argv[i], "--time") == 0)
-        {
-            showTime = true;
-        }
-        else if (fileName == NULL)
-        {
-            fileName = argv[i];
-        }
+        if (strcmp(argv[i], "--time") == 0) showTime = true;
+
+        else if (fileName == NULL) fileName = argv[i];
+ 
     }
 
     if (fileName == NULL)
@@ -101,8 +97,6 @@ int main(int argc, char* argv[])
         int u = edgeU[i];
         int v = edgeV[i];
 
-        // size_t, not int: .size() is unsigned, and comparing the two
-        // signed against unsigned is what the compiler warns about
         size_t p = 0;
         size_t q = 0;
 
@@ -115,14 +109,9 @@ int main(int argc, char* argv[])
                 p++;
                 q++;
             }
-            else if (adj[u][p] < adj[v][q])
-            {
-                p++;
-            }
-            else
-            {
-                q++;
-            }
+            else if (adj[u][p] < adj[v][q])  p++;
+            else q++;
+
         }
     }
 
@@ -135,8 +124,7 @@ int main(int argc, char* argv[])
 
     if (showTime)
     {
-        double seconds =
-            chrono::duration<double>(end - start).count();
+        double seconds = chrono::duration<double>(end - start).count();
 
         fprintf(stderr, "procs 1  V %d  E %d\n", V, E);
         fprintf(stderr, "count    %.6f\n", seconds);

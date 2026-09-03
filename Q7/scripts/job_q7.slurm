@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=q4-tricount
+#SBATCH --job-name=q7-loganalytics
 #SBATCH --nodes=1
 #SBATCH --ntasks=8
 #SBATCH --cpus-per-task=1
@@ -9,6 +9,7 @@
 #SBATCH --partition=debug
 #SBATCH --output=results/slurm_%j.log
 #SBATCH --error=results/slurm_%j.err
+
 
 set -u
 

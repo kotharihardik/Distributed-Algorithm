@@ -2,35 +2,27 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
-#include <random>
+#include <cstdlib>
 
 #define ll long long
 using namespace std;
 
-// random number generator Pick a random number from 0 to n-1.
-unsigned ll bounded(mt19937 &rng, unsigned ll n){
-    unsigned ll bucket = (1ULL << 32) / n;
-    unsigned ll cutoff = bucket * n;
-
-    while(true){
-        unsigned ll r = rng();
-
-        if(r < cutoff)
-            return r / bucket;
-    }
+// Pick a random number from 0 to n-1.
+ll bounded(ll n){
+    return rand() % n;
 }
 
 // Generate values that are more likely to be near the beginning of the range.
-ll skewed(mt19937 &rng, ll range){
+ll skewed(ll range){
     ll hot = range / 5;
 
     if(hot < 1)
         hot = 1;
 
-    if(bounded(rng, 100) < 70)
-        return bounded(rng, hot);
+    if(bounded(100) < 70)
+        return bounded(hot);
 
-    return bounded(rng, range);
+    return bounded(range);
 }
 
 int main(int argc, char **argv){
@@ -66,7 +58,7 @@ int main(int argc, char **argv){
         return 1;
     }
 
-    mt19937 rng(seed);
+    srand(seed);
 
     ofstream fout(outPath.c_str());
     if(!fout){
@@ -82,26 +74,26 @@ int main(int argc, char **argv){
 
     for(ll i = 0; i < N; i++){
 
-        ts += bounded(rng, 4);
+        ts += bounded(4);
 
-        ll server = skewed(rng, S);
-        ll endpoint = skewed(rng, E);
-        ll user = bounded(rng, 100000);
+        ll server = skewed(S);
+        ll endpoint = skewed(E);
+        ll user = bounded(100000);
 
-        ll roll = bounded(rng, 100);
+        ll roll = bounded(100);
         ll status;
 
         if(roll < 85)
-            status = 200 + bounded(rng, 3);       
+            status = 200 + bounded(3);       
         else if(roll < 90)
-            status = 301 + bounded(rng, 2);      
+            status = 301 + bounded(2);      
         else if(roll < 97)
-            status = 400 + bounded(rng, 5);       
+            status = 400 + bounded(5);       
         else
-            status = 500 + bounded(rng, 4);       
+            status = 500 + bounded(4);       
 
-        double response = (1 + bounded(rng, 20000)) / 10.0;
-        ll bytes = 100 + bounded(rng, 60000);
+        double response = (1 + bounded(20000)) / 10.0;
+        ll bytes = 100 + bounded(60000);
 
         fout << ts << " " << server << " " << endpoint << " " << user << " " << status << " " << response << " " << bytes << "\n";
     }

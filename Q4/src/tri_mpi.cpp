@@ -5,30 +5,28 @@
 
 using namespace std;
 
-
-/* Read graph */
-bool read_graph(const char *fileName, int &V,
-                vector<int> &eu, vector<int> &ev)
+bool read_graph(const char *fileName, int &V,  vector<int> &eu, vector<int> &ev)
 {
     FILE *f = fopen(fileName, "rb");
     if (!f) {
         fprintf(stderr, "cannot open %s\n", fileName);
         return false;
-    }
+     }
 
     fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    long size =ftell(f);
+    fseek(f, 0,SEEK_SET);
 
     vector<char> data(size + 1);
-    size_t n = fread(data.data(), 1, size, f);
+    size_t n = fread(data.data(), 1,size, f);
     data[n] = '\0';
     fclose(f);
 
     const char *p =data.data();
-    const char *end = data.data() + n;
+    const char *end = data.data() +n;
 
-    auto next_int = [&](int &x) {
+    auto next_int = [&](int &x) 
+    {
         while (p < end && (*p < '0' || *p > '9')) p++;
         if (p >= end) return false;
 
@@ -64,7 +62,6 @@ bool read_graph(const char *fileName, int &V,
     return true;
 }
 
-
 /* Build forward adjacency */
 void build_forward(int V, const vector<int> &eu, const vector<int> &ev,
                    vector<int> &start, vector<int> &adj,
@@ -86,8 +83,8 @@ void build_forward(int V, const vector<int> &eu, const vector<int> &ev,
     for (int i = 0; i < E; i++) {
         int u = eu[i], v =ev[i];
 
-        if (degree[u] < degree[v] ||
-            (degree[u] == degree[v] && u < v)) {
+        if (degree[u] < degree[v] || (degree[u] == degree[v] && u < v))
+        {
             outU[i] = u;
             outV[i] = v;
         }
@@ -139,7 +136,6 @@ void build_forward(int V, const vector<int> &eu, const vector<int> &ev,
     }
 }
 
-
 /* Count common neighbours */
 long long common(const int *a, int n, const int *b, int m)
 {
@@ -152,14 +148,9 @@ long long common(const int *a, int n, const int *b, int m)
             i++;
             j++;
         }
-        else if (a[i] < b[j]) {
-            i++;
-        }
-        else {
-            j++;
-        }
+        else if (a[i] < b[j]) i++;
+        else  j++;
     }
-
     return count;
 }
 
@@ -176,8 +167,7 @@ int main(int argc, char **argv)
     bool showTime = false;
 
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--time") == 0)
-            showTime = true;
+        if (strcmp(argv[i], "--time") == 0) showTime = true;
         else if (!fileName)
             fileName = argv[i];
     }
@@ -252,8 +242,7 @@ int main(int argc, char **argv)
 
     long long total = 0;
 
-    MPI_Reduce(&local, &total, 1, MPI_LONG_LONG,
-               MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&local, &total, 1, MPI_LONG_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 
     double t5 = MPI_Wtime();
 
@@ -262,8 +251,8 @@ int main(int argc, char **argv)
 
     if (showTime) {
         double times[6] = {
-            t1 - t0,
-            t2 - t1,
+            t1-t0,
+            t2-t1,
             t3 - t2,
             t4 - t3,
             t5 - t4,
@@ -272,8 +261,7 @@ int main(int argc, char **argv)
 
         double maxTimes[6];
 
-        MPI_Reduce(times, maxTimes, 6, MPI_DOUBLE,
-                   MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(times, maxTimes, 6, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
         if (rank == 0) {
             fprintf(stderr, "procs %d  V %d  E %d\n", size, V, E);

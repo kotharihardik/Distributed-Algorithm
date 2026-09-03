@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <random>
+#include <cstdlib>
 
 using namespace std;
 
@@ -40,26 +40,16 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    mt19937 rng(seed);
+    srand(seed);
 
-    long long span = 2LL * maxabs + 1;
-    long long bucket = (1ULL << 32) / span;
-    long long cutoff = bucket * span;
+    int span = 2 * maxabs + 1;
 
     fout << m << " " << n << " " << p << "\n";
 
     for(int i = 0; i < m; i++){
         for(int j = 0; j < n; j++){
 
-            int value = 0;
-            while(true){
-                long long r = rng();
-
-                if(r < cutoff){
-                    value = (int)(r / bucket) - maxabs;
-                    break;
-                }
-            }
+            int value = (rand() % span) - maxabs;
 
             fout << value;
             if(j + 1 == n)
@@ -72,16 +62,7 @@ int main(int argc, char **argv)
     for(int i = 0; i < n; i++){
         for(int j = 0; j < p; j++){
 
-            int value = 0;
-
-            while(true){
-                long long r = rng();
-
-                if(r < cutoff){
-                    value = (int)(r / bucket) - maxabs;
-                    break;
-                }
-            }
+            int value = (rand() % span) - maxabs;
 
             fout << value;
             if(j + 1 == p)

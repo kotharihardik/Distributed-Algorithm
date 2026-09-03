@@ -1,4 +1,15 @@
+#!/usr/bin/env python3
+"""
+Builds the report tables from results/benchmark_raw.csv.
 
+Produces exactly what docs/report_format.md asks for and nothing else:
+  - Speed-up      S(P) = T1 / TP        (the required table)
+  - Runtime       raw seconds
+  - Efficiency    E(P) = S(P) / P
+  - Communication vs computation, as % of the run spent in MPI calls
+
+Usage: python3 summarize.py results/benchmark_raw.csv > results/report_tables.md
+"""
 
 import csv
 import sys
@@ -7,6 +18,7 @@ PROCS = [1, 2, 4, 8]
 
 # csv label -> the row name used in the report
 ROWS = [
+    ("Tiny", "Tiny"),
     ("Small", "Small"),
     ("Medium", "Medium"),
     ("Large", "Large"),
@@ -35,15 +47,14 @@ def load(path):
             if total <= 0:
                 continue
 
-            shape[label] = (row["V"], row["E"])
+            shape[label] = (row["m"], row["n"], row["p"])
             key = (label, procs)
 
             if key not in best or total < best[key]["total"]:
                 best[key] = {
                     "total": total,
-                    "bcast": num(row["bcast"]),
-                    "build": num(row["build"]),
-                    "count": num(row["count"]),
+                    "scatter": num(row["scatter"]),
+                    "compute": num(row["compute"]),
                     "reduce": num(row["reduce"]),
                 }
 
@@ -77,15 +88,17 @@ def main():
 
     best, shape = load(sys.argv[1])
 
-    print("# Q4 - Triangle Counting: Results\n")
+    print("# Q2 - Column-Row Matrix Multiplication: Results\n")
 
     sizes = []
     for key, name in ROWS:
         if key in shape:
-            V, E = shape[key]
-            sizes.append("{} = {} vertices, {} edges".format(name, V, E))
+            m, n, p = shape[key]
+            sizes.append("- {} = {}x{} times {}x{}; ".format(name, m, n, n, p))
     if sizes:
-        print("Graphs: " + "; ".join(sizes) + ".")
+        print("Input sizes: ")
+        print("\n".join(sizes[:-1]))
+        print(sizes[-1].rstrip("; ") + ".\n")
     print("Timings are the fastest of the repeated runs, in seconds.\n")
 
     table("Speed-up $S(P) = T_1 / T_P$", best,
@@ -99,9 +112,9 @@ def main():
 
     table("Communication vs. computation", best,
           lambda base, e, p: "{:.1f}%".format(
-              100.0 * (e["bcast"] + e["reduce"]) / e["total"]) if e["total"] > 0 else "",
+              100.0 * (e["scatter"] + e["reduce"]) / e["total"]) if e["total"] > 0 else "",
           note="Percentage of each run spent inside MPI calls "
-               "(broadcasting the edge list, plus the final reduce of the counts).")
+               "(scattering the column-row pairs, plus the final reduce).")
 
 
 if __name__ == "__main__":

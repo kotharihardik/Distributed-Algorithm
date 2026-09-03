@@ -1,24 +1,8 @@
-# Q4 - Triangle counting in an undirected graph
-#
-# Short commands instead of long ones. Run "make help" for the list.
-#
-# On the cluster, load the MPI module first:
-#     module purge && module load openmpi/4.1.5
-
 CXX      ?= g++
 MPICXX   ?= mpicxx
 CXXFLAGS ?= -O2 -std=c++17 -Wall
 
-# How MPI programs get launched, and it has to differ by machine.
-#
-# On the cluster: the ucx flags silence a missing-library warning, and
-# --bind-to core pins each rank so the OS cannot shuffle them around.
-#
-# On a Mac: macOS exposes no processor binding at all, so --bind-to core is a
-# hard error rather than a warning; and a laptop has fewer cores than we want
-# ranks, so oversubscribing has to be allowed.
-#
-# Override it by hand if needed:  make test LAUNCH="mpirun -np"
+# mpirun flags differ by machine
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 LAUNCH   ?= mpirun --oversubscribe -np
@@ -26,13 +10,13 @@ else
 LAUNCH   ?= mpirun --mca pml ^ucx --mca osc ^ucx --bind-to core -np
 endif
 
-# Process count used by "make run"
+# process count for "make run"
 P        ?= 4
 
-# What to ask SLURM for. Used by alloc / ctest / cbench below.
-#   --hint=nomultithread is not optional: the nodes are 24 real cores shown as
-#   48 hyperthreads, and without it 8 tasks land on 4 real cores and P=8 comes
-#   out half as fast, silently.
+# the graph handed over on evaluation day, for "make eval"
+GRAPH    ?= data/graph.txt
+
+# --hint=nomultithread matters: without it 8 tasks land on 4 real cores
 NTASKS   ?= 8
 WALL     ?= 01:00:00
 PART     ?= debug
@@ -44,7 +28,7 @@ SRC = src
 
 PROGS = $(BIN)/tri_mpi $(BIN)/tri_seq $(BIN)/gen_graph
 
-.PHONY: all run seq test bench alloc ctest cbench submit queue graph clean help
+.PHONY: all run seq test bench eval alloc ctest cbench submit queue graph clean help
 
 all: $(PROGS)
 
@@ -60,31 +44,35 @@ $(BIN)/tri_seq: $(SRC)/tri_seq.cpp | $(BIN)
 $(BIN)/gen_graph: $(SRC)/gen_graph.cpp | $(BIN)
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
-## run the worked example from the question paper (P=$(P))
+## run the worked example (P=$(P))
 run: $(PROGS)
 	$(LAUNCH) $(P) $(BIN)/tri_mpi data/sample.txt
 
-## same example through the sequential reference
+## same example, sequential
 seq: $(PROGS)
 	$(BIN)/tri_seq data/sample.txt
 
-## full correctness check at P = 1, 2, 4, 8
+## correctness check at P = 1,2,4,8
 test: $(PROGS)
 	LAUNCH="$(LAUNCH)" bash scripts/run_correctness.sh
 
-## timing sweep over all four input sizes
+## timing sweep, writes results/
 bench: $(PROGS)
 	LAUNCH="$(LAUNCH)" bash scripts/run_benchmark.sh
 
-## grab cores and drop into a shell (then run: make test / make bench)
+## one supplied graph at P = 1,2,4,8   (make eval GRAPH=graph.txt)
+eval: $(PROGS)
+	LAUNCH="$(LAUNCH)" bash scripts/run_eval.sh $(GRAPH)
+
+## grab cores and drop into a shell
 alloc:
 	$(SALLOC)
 
-## allocate, run the correctness check, release the cores - one command
+## allocate + correctness + release, one command
 ctest:
 	$(SALLOC) $(MAKE) test
 
-## allocate, run the benchmark, release the cores - one command
+## allocate + benchmark + release, one command
 cbench:
 	$(SALLOC) $(MAKE) bench
 
@@ -96,12 +84,12 @@ submit:
 queue:
 	squeue -u $(USER)
 
-## redraw the speed-up graph from existing results (needs the analysis script)
+## redraw the speed-up graph
 graph:
-	@test -f scripts/plot_speedup.py || { echo "scripts/plot_speedup.py is not in this tree - results/speedup.png is already built"; exit 1; }
+	@test -f scripts/plot_speedup.py || { echo "scripts/plot_speedup.py not present"; exit 1; }
 	python3 scripts/plot_speedup.py results/benchmark_raw.csv results/speedup.png
 
-## delete binaries and generated data (keeps results)
+## remove binaries and generated data
 clean:
 	rm -rf $(BIN) data/generated results/.work scripts/__pycache__
 
@@ -113,6 +101,8 @@ help:
 	@echo "  make seq        same example, sequential version"
 	@echo "  make test       correctness check at P = 1,2,4,8"
 	@echo "  make bench      timing sweep, writes results/"
+	@echo "  make eval       one supplied graph at P = 1,2,4,8"
+	@echo "                  e.g. make eval GRAPH=graph.txt"
 	@echo ""
 	@echo "  on the cluster - these ask SLURM for cores first:"
 	@echo "  make ctest      allocate + correctness + release"
